@@ -20,7 +20,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 public class CartServer implements Runnable {
-    private static final int PORT = 7222;
+    private static final int DEFAULT_PORT = 7222;
+    private static final int PORT = Integer.parseInt(System.getProperty("port", String.valueOf(DEFAULT_PORT)));
 
     public static void main(String[] args) {
         new CartServer().run();
@@ -36,6 +37,8 @@ public class CartServer implements Runnable {
     }
 
     private void startServer() {
+        validatePort(PORT); // Validation du port
+
         Server server = new Server(PORT);
         ServletContextHandler contextHandler = new ServletContextHandler(server, "/");
         contextHandler.addFilter(EntityManagerContextFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
@@ -60,6 +63,12 @@ public class CartServer implements Runnable {
             e.printStackTrace();
         } finally {
             server.destroy();
+        }
+    }
+
+    private void validatePort(int port) {
+        if (port < 1024 || port > 65535) {
+            throw new IllegalArgumentException("Le port doit être compris entre 1024 et 65535.");
         }
     }
 
